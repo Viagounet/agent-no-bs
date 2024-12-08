@@ -1,35 +1,11 @@
 import logging
 
 from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
+from typing import Any
 
 from agent_no_bs.agent import Agent
+from agent_no_bs.objects import ObservableObject
 
-logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w")
-
-class Observation:
-    def __init__(self):
-        pass
-    def __str__(self) -> str:
-        return "Observation content"
-
-class ObservableObject:
-    def __init__(self):
-        pass
-    
-    @abstractmethod
-    def _observe(self, sensor) -> Observation:
-        pass
-    
-    @abstractmethod
-    def _update(self):
-        pass
-    
-    def observe(self, sensor) -> Observation:
-        observation = self._observe(sensor)
-        logging.debug(observation)
-        return observation
-    
 @dataclass
 class Environnement:
     objects: list[ObservableObject] = field(default_factory=list)
@@ -38,7 +14,9 @@ class Environnement:
     def run(self, max_turns: int):
         for turn in range(max_turns):
             for observable in self.objects:
-                observable.update()
+                observable._update()
+            for agent in self.agents:
+                agent.observe(self.objects)
 
     def add(self, new_object: ObservableObject) -> None:
         if isinstance(new_object, ObservableObject):
